@@ -1,7 +1,6 @@
-// Land Rover Discovery 2 SLS Controller V1.1
+// Land Rover Discovery 2 SLS Controller
+// https://github.com/l-ox/land-rover-discovery-2-sls-controller
 // By Luke Oxley
-// Created 16/07/2023
-// Updated 18/07/2023
 const int msb_pin = 2; // Assign pin for Mode Selector Button (MSB).
 const int os_solenoid = 3; // Assign pin for O/S/R solenoid.
 const int ns_solenoid = 4; // Assign pin for N/S/R solenoid.
