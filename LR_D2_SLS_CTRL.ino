@@ -1,7 +1,7 @@
 // Land Rover Discovery 2 SLS Controller V1.1
 // By Luke Oxley
 // Created 16/07/2023
-// Updated 17/07/2023
+// Updated 18/07/2023
 const int msb_pin = 2; // Assign pin for Mode Selector Button (MSB).
 const int os_solenoid = 3; // Assign pin for O/S/R solenoid.
 const int ns_solenoid = 4; // Assign pin for N/S/R solenoid.
@@ -18,6 +18,7 @@ int current_height; // Variable to store the current vehicle height.
 int current_mode; // Variable to store the current active mode.
 int target_height; // Variable to store target vehicle height.
 int direction; // Variable to store the current attempted lift direction.
+int activation_status = 1; // Variable to store the current activation status.
 
 void setup() {
   pinMode(msb_pin, INPUT_PULLUP); // Set the MSB pin as an input with an internal pull-up resistor.
@@ -38,6 +39,7 @@ void loop() {
   if (msb_state == HIGH && last_msb_state == LOW) {
     // Change the mode in sequence upon MSB activation and update Serial Monitor*
     target_mode = (target_mode + 1) % 4;
+    activation_status = 1;
   }
   last_msb_state = msb_state; // Update MSB state for the next iteration.
   delay(50); // Debounce delay to avoid multiple readings due to button bouncing.
@@ -55,7 +57,7 @@ void loop() {
     target_height = 800;
   }
   // Attempt to raise vehicle to target height.
-  if (current_height < (target_height - height_deviation) && direction == 0) {
+  if (current_height < (target_height - height_deviation) && direction == 0 && activation_status == 1) {
     digitalWrite(os_solenoid, HIGH);
     digitalWrite(ns_solenoid, HIGH);
     digitalWrite(pump_relay, HIGH);
@@ -66,18 +68,19 @@ void loop() {
     Serial.println(current_height);
   }
   // Deactivate system, vehicle reached target height successfully (UP).
-   if (current_height > target_height && direction == 2) {
+   if (current_height > target_height && direction == 2 && activation_status ==1) {
     digitalWrite(os_solenoid, LOW);
     digitalWrite(ns_solenoid, LOW);
     digitalWrite(pump_relay, LOW);
     direction = 0;
     current_mode = target_mode;
+    activation_status = 0;
     Serial.println("Raised to target height successfully.");
     Serial.print("Current height = ");
     Serial.println(current_height);
    }
   // Attempt to lower vehicle to target height.
-   if (current_height > (target_height + height_deviation) && direction == 0) {
+   if (current_height > (target_height + height_deviation) && direction == 0 && activation_status == 1) {
     digitalWrite(os_solenoid, HIGH);
     digitalWrite(ns_solenoid, HIGH);
     digitalWrite(vent_solenoid, HIGH);
@@ -88,12 +91,13 @@ void loop() {
     Serial.println(current_height);
    }
   // Deactivate system, vehicle reached target height successfully (DOWN).
-   if (current_height < target_height && direction == 1) {
+   if (current_height < target_height && direction == 1 && activation_status == 1) {
     digitalWrite(os_solenoid, LOW);
     digitalWrite(ns_solenoid, LOW);
     digitalWrite(vent_solenoid, LOW);
     direction = 0;
     current_mode = target_mode;
+    activation_status = 0;
     Serial.println("Lowered to target height successfully.");
     Serial.print("Current height = ");
     Serial.println(current_height);
